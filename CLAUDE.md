@@ -8,31 +8,33 @@ Lumora is a credit-access platform for informal Brazilian micro-entrepreneurs (m
 2. **Business portfolio builder** — AI pipeline that turns raw WhatsApp uploads into a structured business profile per applicant
 3. **Scoring integration** — parses the portfolio into features and calls external scoring APIs (Serasa, Belvo)
 
-The old spec files (`Lumora_Spec_MD.md`, `Lumora_Trust_Scoring_Model_Spec_v0.md.docx`) and the rules-based scorecard in `scoring_engine/` are **no longer the source of truth**. Do not treat them as authoritative for new work.
+The Phase 0 rules-based scorecard and its spec docs were removed in the pivot. They are preserved in git under the tag `phase0-archive` (`git checkout phase0-archive`) if anything is ever needed back — do not resurrect them into the new codebase.
 
 ## Environment
 
 Always use the `.venv` at the project root. Never install packages on system Python.
+On this machine the interpreter is `.venv/Scripts/python.exe` (Windows); on POSIX it's `.venv/bin/python`.
 
 ```bash
 # Install
-.venv/bin/pip install -e ".[api,dev]"
+.venv/Scripts/python.exe -m pip install -e ".[api,dev]"
 
 # Test
-.venv/bin/pytest tests/ -v
+.venv/Scripts/python.exe -m pytest tests/ -v
 
-# Run API
-.venv/bin/uvicorn api.main:app --reload
+# Run API (serves the WhatsApp webhook)
+.venv/Scripts/python.exe -m uvicorn api.main:app --reload
 ```
 
 ## Project structure (current state)
 
 ```
-scoring_engine/   — old rules-based scorecard (Phase 0, largely superseded)
-api/              — FastAPI app; will expand to host WhatsApp webhook and portfolio endpoints
-tests/            — existing pytest suite (153 tests against old scorecard)
-whatsapp/         — (to be created) webhook handler, message router, conversation state
-portfolio/        — (to be created) AI pipeline: raw uploads → structured business profile JSON
+whatsapp/    — WhatsApp Cloud API: config, webhook, client, store (SQLite), conversation engine, flows/
+leads/       — load + normalize the Meta lead-ad CSV exports (Brazilian phone normalization)
+portfolio/   — build a structured BusinessPortfolio from a contact's intake (Claude enrichment stubbed)
+api/         — FastAPI app hosting the webhook (GET/POST /webhook, GET /health)
+tests/       — pytest suite for the above (conftest has a FakeClient + message factories)
+data/        — runtime SQLite DB + downloaded media (gitignored)
 ```
 
 ## Lead data
@@ -47,7 +49,7 @@ The pilot targets ~20 of the ~200 leads.
 
 ## Hard constraints (LGPD)
 
-Demographics — gender, location, residential moves — are collected only for bias monitoring and display. They must never be passed to a scoring function as features. This applies to the new portfolio builder and scoring integration just as it did to the old scorecard.
+Demographics — gender, location, residential moves — are collected only for bias monitoring and display. They must never be passed to a scoring function as features. This applies to the portfolio builder and the scoring integration.
 
 ## Pending external inputs
 

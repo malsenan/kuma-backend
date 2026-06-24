@@ -15,7 +15,9 @@ An intake tool that contacts leads from the lead CSV files and guides them throu
 - Includes an escalation path to a human representative
 - Stores all incoming data as raw + lightly structured responses for the portfolio builder
 
-**Status:** In design — awaiting conversation flow from Sandra and WhatsApp API credentials.
+**Status:** Built — webhook, signature check, SQLite store, media download, and a declarative
+flow engine are working and tested. Running on a **placeholder** flow (`whatsapp/flows/intake_pt_BR.json`)
+until Sandra's approved script lands; needs Meta credentials in `.env` to go live.
 
 ### 2. Business portfolio builder (`portfolio/`)
 
@@ -26,7 +28,9 @@ An AI pipeline that turns raw WhatsApp uploads into a structured business profil
 - Claude processes all collected material and populates a business portfolio JSON schema
 - Output: one structured JSON object per applicant
 
-**Status:** In design — awaiting portfolio field template from Sandra.
+**Status:** Schema + deterministic builder are working and tested (assembles answers and media
+from the store into a `BusinessPortfolio`). The Claude enrichment pass (OCR + soft-field extraction)
+is stubbed, pending Sandra's field template.
 
 ### 3. Scoring integration (`api/`)
 
@@ -82,12 +86,16 @@ Probability score + recommended loan amount
 ## Repository layout
 
 ```
-whatsapp/         — (to be created) webhook, message router, conversation state
-portfolio/        — (to be created) AI pipeline: raw uploads → BusinessPortfolio JSON
-api/              — FastAPI app (health check; will host webhook and portfolio endpoints)
-scoring_engine/   — old Phase 0 rules-based scorecard (reference only, superseded)
-tests/            — pytest suite against old scorecard
+whatsapp/    — WhatsApp Cloud API: webhook, client, SQLite store, conversation engine, flows/
+leads/       — load + normalize the Meta lead-ad CSV exports (Brazilian phone normalization)
+portfolio/   — build a structured BusinessPortfolio from a contact's intake (AI enrichment stubbed)
+api/         — FastAPI app hosting the webhook (GET/POST /webhook, GET /health)
+tests/       — pytest suite for the above
+data/        — runtime SQLite DB + downloaded media (gitignored)
 ```
+
+> The Phase 0 rules-based scorecard was removed in the pivot; it lives in git under the
+> tag `phase0-archive` if ever needed.
 
 ---
 
@@ -107,9 +115,15 @@ source .venv/bin/activate   # Windows: .venv\Scripts\activate
 # 2. Install
 pip install -e ".[api,dev]"
 
-# 3. Run existing API
+# 3. Run tests
+pytest tests/ -v
+
+# 4. Run the API (serves the WhatsApp webhook)
 uvicorn api.main:app --reload
 # Swagger UI → http://localhost:8000/docs
+
+# 5. Preview the pilot leads (sends nothing)
+python -m leads.extract --pilot 20
 ```
 
 ---

@@ -1,0 +1,76 @@
+{
+  "name": "lumora_intake_pt_BR",
+  "version": "0.1-placeholder",
+  "note": "PLACEHOLDER skeleton. Replace prompts/branches with Sandra's approved flow. Structure: each step has a type and a `next`. Buttons map a reply id to the next step. Media steps collect uploads until the user taps the advance button or sends >= min_items.",
+  "start": "welcome",
+  "steps": {
+    "welcome": {
+      "type": "buttons",
+      "text": "Oi {first_name}! Aqui é a Lumora 💜 Ajudamos mulheres empreendedoras a conseguir crédito justo, sem burocracia, usando seu histórico do Pix. Posso te fazer algumas perguntas rápidas?",
+      "buttons": [
+        {"id": "consent_yes", "title": "Sim, vamos", "next": "ask_business"},
+        {"id": "consent_no", "title": "Agora não", "next": "declined"},
+        {"id": "want_agent", "title": "Falar com pessoa", "next": "handoff"}
+      ]
+    },
+    "ask_business": {
+      "type": "text_input",
+      "text": "Que ótimo! Me conta com suas palavras: o que você vende ou qual serviço você faz? 😊",
+      "next": "ask_time_active"
+    },
+    "ask_time_active": {
+      "type": "buttons",
+      "text": "Há quanto tempo você toca esse negócio?",
+      "buttons": [
+        {"id": "time_lt1", "title": "Menos de 1 ano", "next": "ask_docs"},
+        {"id": "time_1to3", "title": "1 a 3 anos", "next": "ask_docs"},
+        {"id": "time_gt3", "title": "Mais de 3 anos", "next": "ask_docs"}
+      ]
+    },
+    "ask_docs": {
+      "type": "collect_media",
+      "text": "Pode me enviar uma foto do seu documento (RG ou CNH) e, se tiver, o comprovante do MEI? Pode mandar como foto ou arquivo. Quando terminar, toque em \"Já enviei\".",
+      "accept": ["image", "document"],
+      "min_items": 1,
+      "advance_button": {"id": "docs_done", "title": "Já enviei"},
+      "skip_button": {"id": "docs_skip", "title": "Não tenho agora"},
+      "next": "ask_photos"
+    },
+    "ask_photos": {
+      "type": "collect_media",
+      "text": "Agora me manda 2 ou 3 fotos do seu negócio: seus produtos, seu espaço de trabalho ou você trabalhando. Isso ajuda a contar a sua história 📸",
+      "accept": ["image"],
+      "min_items": 1,
+      "advance_button": {"id": "photos_done", "title": "Já enviei"},
+      "skip_button": {"id": "photos_skip", "title": "Pular"},
+      "next": "ask_revenue"
+    },
+    "ask_revenue": {
+      "type": "buttons",
+      "text": "Mais ou menos, quanto seu negócio fatura por mês?",
+      "buttons": [
+        {"id": "rev_lt2k", "title": "Até R$2 mil", "next": "ask_amount"},
+        {"id": "rev_2to5k", "title": "R$2 a 5 mil", "next": "ask_amount"},
+        {"id": "rev_gt5k", "title": "Mais de R$5 mil", "next": "ask_amount"}
+      ]
+    },
+    "ask_amount": {
+      "type": "text_input",
+      "text": "Por último: de quanto de crédito você precisa e para quê? Ex: \"R$1.500 para comprar estoque\".",
+      "next": "thanks"
+    },
+    "thanks": {
+      "type": "terminal",
+      "text": "Perfeito, {first_name}! 🙏 Recebi tudo. Vamos analisar seu perfil e te respondemos por aqui em breve. Obrigada por confiar na Lumora! 💜"
+    },
+    "declined": {
+      "type": "terminal",
+      "text": "Sem problemas! Quando quiser, é só mandar \"oi\" aqui que a gente retoma. 💜"
+    },
+    "handoff": {
+      "type": "terminal",
+      "flag": "needs_agent",
+      "text": "Claro! Já avisei uma pessoa do nosso time e ela vai te chamar aqui em breve. 💜"
+    }
+  }
+}

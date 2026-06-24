@@ -1,19 +1,19 @@
 from fastapi import FastAPI
-from scoring_engine import BorrowerFeatures, TrustScore, score_borrower
-from scoring_engine.scorecard import MODEL_VERSION
+
+from whatsapp.webhook import router as whatsapp_router
+
+API_VERSION = "0.2.0"
 
 app = FastAPI(
-    title="Lumora Scoring API",
-    description="Trust scoring for informal entrepreneurs (§8 of Lumora spec). POST /score → §5.1 TrustScore.",
-    version=MODEL_VERSION,
+    title="Lumora API",
+    description="WhatsApp intake webhook for informal-entrepreneur credit onboarding.",
+    version=API_VERSION,
 )
+
+# WhatsApp Cloud API webhook: GET/POST /webhook
+app.include_router(whatsapp_router)
 
 
 @app.get("/health")
 def health() -> dict:
-    return {"status": "ok", "model_version": MODEL_VERSION}
-
-
-@app.post("/score", response_model=TrustScore)
-def score(features: BorrowerFeatures) -> TrustScore:
-    return score_borrower(features)
+    return {"status": "ok", "version": API_VERSION}
